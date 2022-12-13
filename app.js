@@ -1,7 +1,7 @@
+const config = require('./utils/config')
 const express = require('express')
 const cors = require('cors')
 
-require('dotenv').config()
 const app = express()
 
 const showsRouter = require('./controllers/shows')
@@ -20,7 +20,7 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-const url = process.env.MONGODB_URI
+const url = config.MONGODB_URI
 console.log('connecting to', url)
 
 mongoose
