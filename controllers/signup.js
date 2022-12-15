@@ -25,7 +25,11 @@ signupRouter.post('/', async (request, response) => {
 
   const savedUser = await user.save()
 
-  response.status(201).json(savedUser)
+  const token = jwt.sign({ email: savedUser.email, id: savedUser._id }, process.env.SECRET, {
+    expiresIn: 60 * 60 * 24,
+  })
+
+  response.status(200).send({ token, email: savedUser.email })
 })
 
 module.exports = signupRouter

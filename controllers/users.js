@@ -12,6 +12,15 @@ usersRouter.get('/', (request, response) => {
     .catch((error) => next(error))
 })
 
+usersRouter.get('/:id', (request, response) => {
+  User.findById(request.params.id, { email: 1, bookmarkedShows: 1 })
+    .populate('bookmarkedShows')
+    .then((users) => {
+      response.json(users)
+    })
+    .catch((error) => next(error))
+})
+
 // Set Bookmarked
 usersRouter.put('/:id', async (request, response) => {
   //Beyond Earth
@@ -29,20 +38,29 @@ usersRouter.put('/:id', async (request, response) => {
 
   try {
     // check if show already exists in bookmarkedShows
-    const mappedShows = await Promise.all(
+    let showObjects = await Promise.all(
       user.bookmarkedShows.map(async (id) => await Show.findById(id))
     )
-    const showExists = mappedShows.filter((s) => (s.title === show.title ? true : false))
-    const updatedBookmarkedShows =
-      showExists.length === 0 ? user.bookmarkedShows.concat(show) : user.bookmarkedShows
+    const showExists = showObjects.find((s) => s.title === show.title)
+
+    // if show doesn't exist, add; else remove it from list
+    if (showExists && showExists.title) {
+      showObjects = showObjects.filter((s) => {
+        return s.title !== show.title
+      })
+    } else {
+      showObjects = showObjects.concat(show)
+    }
+
+    let showIds = showObjects.map((s) => s._id)
 
     // update user by setting bookmarkedShows
     const updatedUser = await User.findByIdAndUpdate(
       request.params.id,
-      { $set: { bookmarkedShows: updatedBookmarkedShows } },
+      { $set: { bookmarkedShows: showIds } },
       { new: true }
     )
-    response.json(updatedUser)
+    response.json(updatedUser.bookmarkedShows)
   } catch (error) {
     return response.status(401).json({ error: error })
   }
