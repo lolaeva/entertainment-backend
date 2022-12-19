@@ -4,6 +4,7 @@ const cors = require('cors')
 
 const app = express()
 
+const defaultRouter = require('./controllers/default')
 const showsRouter = require('./controllers/shows')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
@@ -37,6 +38,7 @@ app.use(express.static('build'))
 app.use(express.json())
 app.use(requestLogger)
 
+app.use('/', defaultRouter)
 app.use('/shows', middleware.authorization, showsRouter)
 app.use('/users', middleware.authorization, usersRouter)
 app.use('/login', loginRouter)
